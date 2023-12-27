@@ -4,6 +4,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 import PyPDF2
 import torch
 import base64
+import io
 
 # Model and tokenizer loading
 def load_model():
@@ -13,12 +14,16 @@ def load_model():
     return tokenizer, base_model
 
 def file_preprocessing(uploaded_file):
-    # Read the PDF file
-    reader = PyPDF2.PdfReader(uploaded_file)
+    # Initialize a file stream
+    file_stream = uploaded_file.read()
+
+    # Create a PDF reader object using the file stream
+    reader = PyPDF2.PdfFileReader(io.BytesIO(file_stream))
     final_texts = ""
     
-    for page in reader.pages:
-        final_texts += page.extract_text() + "\n"
+    for page_num in range(reader.numPages):
+        page = reader.getPage(page_num)
+        final_texts += page.extractText() + "\n"
     
     return final_texts
 
