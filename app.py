@@ -3,15 +3,12 @@ from transformers import T5Tokenizer, T5ForConditionalGeneration, pipeline
 import torch
 import base64
 
-#model and tokenizer loading
-@st.cache(allow_output_mutation=True)
+# Model and tokenizer loading
 def load_model():
     checkpoint = "MBZUAI/LaMini-Flan-T5-248M"
     tokenizer = T5Tokenizer.from_pretrained(checkpoint)
     base_model = T5ForConditionalGeneration.from_pretrained(checkpoint, torch_dtype=torch.float32)
     return tokenizer, base_model
-
-tokenizer, base_model = load_model()
 
 # Function to process PDF file and return text
 def process_pdf(uploaded_file):
@@ -21,6 +18,7 @@ def process_pdf(uploaded_file):
 
 # LLM pipeline
 def llm_pipeline(input_text):
+    tokenizer, base_model = load_model()
     pipe_sum = pipeline('summarization', model=base_model, tokenizer=tokenizer, max_length=500, min_length=50)
     result = pipe_sum(input_text)
     return result[0]['summary_text']
