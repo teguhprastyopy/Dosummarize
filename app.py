@@ -1,7 +1,7 @@
 import streamlit as st 
 from transformers import T5Tokenizer, T5ForConditionalGeneration, pipeline
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-import pdfplumber
+import PyPDF2
 import torch
 import base64
 
@@ -13,13 +13,14 @@ def load_model():
     return tokenizer, base_model
 
 def file_preprocessing(uploaded_file):
-    # Use pdfplumber to read the PDF file
+    # Read the PDF file
+    reader = PyPDF2.PdfReader(uploaded_file)
     final_texts = ""
-    with pdfplumber.open(uploaded_file) as pdf:
-        for page in pdf.pages:
-            final_texts += page.extract_text() + "\n"
+    
+    for page in reader.pages:
+        final_texts += page.extract_text() + "\n"
+    
     return final_texts
-
 
 # LLM pipeline
 def llm_pipeline(input_text):
