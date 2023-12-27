@@ -1,5 +1,7 @@
 import streamlit as st 
 from transformers import T5Tokenizer, T5ForConditionalGeneration, pipeline
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.document_loaders import PyPDFLoader
 import torch
 import base64
 
@@ -10,11 +12,17 @@ def load_model():
     base_model = T5ForConditionalGeneration.from_pretrained(checkpoint, torch_dtype=torch.float32)
     return tokenizer, base_model
 
-# Function to process PDF file and return text
-def process_pdf(uploaded_file):
-    # Code to process PDF file and return text
-    # ...
-    return processed_text
+#file loader and preprocessing
+def file_preprocessing(file):
+    loader =  PyPDFLoader(file)
+    pages = loader.load_and_split()
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=50)
+    texts = text_splitter.split_documents(pages)
+    final_texts = ""
+    for text in texts:
+        print(text)
+        final_texts = final_texts + text.page_content
+    return final_texts
 
 # LLM pipeline
 def llm_pipeline(input_text):
@@ -42,7 +50,7 @@ def main():
                 display_pdf(uploaded_file)
 
             with col2:
-                processed_text = process_pdf(uploaded_file)
+                processed_text = file_preprocessing(uploaded_file)
                 summary = llm_pipeline(processed_text)
                 st.info("Summarization Complete")
                 st.success(summary)
